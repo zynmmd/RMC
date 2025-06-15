@@ -1,0 +1,36 @@
+import serial.tools.list_ports
+import socket
+import json
+import time
+HOST = '192.168.1.1XX'  
+PORT = 65432
+ports = serial.tools.list_ports.comports()
+serialInst = serial.Serial()
+portsList = []
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((HOST, PORT))
+for onePort in ports:
+    portsList.append(str(onePort))
+    print(str(onePort))
+val = input("Select Port: COM")
+for x in range(0,len(portsList)):
+    if portsList[x].startswith("COM" + str(val)):
+        portVar = "COM" + str(val)
+        print(portVar)
+serialInst.baudrate = 9600
+serialInst.port = portVar
+serialInst.open()
+last_time = time.time()
+ax_velocity = time.time()
+while True:
+    if serialInst.in_waiting:
+        packet = serialInst.readline()
+        "print(packet.decode('utf-8').rstrip('\n'))"
+        data = packet.decode('utf-8').rstrip('\n')
+        x, y = data.strip().split(",")
+        data2 = json.dumps({'x': x, 'y': y}).encode()
+        client_socket.sendall(data2)
+        
+        
+                
+        
