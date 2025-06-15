@@ -1,0 +1,32 @@
+import socket
+import json
+from gpiozero import AngularServo
+from time import sleep
+HOST = '0.0.0.0'  
+PORT = 65432      
+
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind((HOST, PORT))
+server_socket.listen(1)
+servo1 = AngularServo(18,min_pulse_width=0.0006,max_pulse_width=0.0023)
+servo2 = AngularServo(18,min_pulse_width=0.0006,max_pulse_width=0.0023)
+print(f"Server listening on {HOST}:{PORT}")
+conn, addr = server_socket.accept()
+print(f"Connected by {addr}")
+
+while True:
+    data = conn.recv(1024)
+    if not data:
+        break
+    try:
+        payload = json.loads(data.decode())
+        x = payload.get('x')
+        y = payload.get('y')
+        servo1.angle = x
+        servo2.angle = y
+        print(f"Received x: {x}, y: {y}")
+    except json.JSONDecodeError:
+        print("Invalid data received")
+
+conn.close()
+server_socket.close()
